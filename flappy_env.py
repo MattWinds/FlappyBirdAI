@@ -38,11 +38,12 @@ class FlappyBirdEnv:
         #Clock and reset to first state
         self.clock = pygame.time.Clock()
         self.reset()
-    
+
 #--------------------------------------------------------------------------------------------------------------------------
 
     #Resets the envrionment to start state
     def reset(self):
+
         #Reset bird and scores
         self.bird_y = self.HEIGHT // 2  #Bird position
         self.bird_velocity = 0  #Start bird with no speed
@@ -57,7 +58,7 @@ class FlappyBirdEnv:
             self.pipes.append(self._create_pipe(self.WIDTH + i * self.pipe_spacing, with_item=with_item))
 
         return self._get_state()    #Return initial state (array)
-    
+
 #--------------------------------------------------------------------------------------------------------------------------
 
     #Creates a pipe, *similar to game.py*
@@ -71,7 +72,7 @@ class FlappyBirdEnv:
             item = {'x': item_x, 'y': item_y, 'active': True}   #Creates item object with cords and collection status
 
         return {'x': x_pos, 'top': top, 'bottom': bottom, 'item': item, 'passed': False}
-    
+
 #--------------------------------------------------------------------------------------------------------------------------
 
     #Returns current state of game
@@ -95,11 +96,24 @@ class FlappyBirdEnv:
             item_dx,    #Bird x distance to item
             item_dy     #Bird y distance to item
         ], dtype=np.float32)
-    
+
 #--------------------------------------------------------------------------------------------------------------------------
 
     #Function to dictate what happens after jump or not
     def step(self, action):
+
+        #Rewards
+        REWARD_ALIVE = 0.5  #Reward for surviving every frame
+        REWARD_PASS_PIPE = 80   #Reward for passing pipe
+        REWARD_COLLECT_ITEM = 20    #Reward for collecting item
+        PENALTY_DEATH = -60 #Negative reward for dying
+
+        #If the bird died in step before, next step() is unneccessary: return state and zero reward
+        if self.done:
+            return self._get_state(), 0, self.done
+
+        reward = 0  #Reset reward each step 
+
         #If jump
         if action == 1:
             self.bird_velocity = self.JUMP_STRENGTH #Negative velocity (jump)
@@ -108,6 +122,8 @@ class FlappyBirdEnv:
         self.bird_velocity += self.GRAVITY
         self.bird_y += self.bird_velocity
         self.frame_counter += 1
+
+        reward += REWARD_ALIVE #Every frame, add small reward
 
         #After 1 second (60 frames), add 1 to score
         if self.frame_counter >= self.FPS:
@@ -120,20 +136,21 @@ class FlappyBirdEnv:
             if pipe['item'] and pipe['item']['active']:
                 pipe['item']['x'] -= self.pipe_speed
 
-        #Recycle old pipes, (similar to game.py)
+        #Recycle old pipes (similar to game.py)
         for i in range(len(self.pipes)):
             if self.pipes[i]['x'] + self.pipe_width < 0:
                 farthest_x = max(p['x'] for p in self.pipes)
                 with_item = random.random() < 0.5
                 self.pipes[i] = self._create_pipe(farthest_x + self.pipe_spacing, with_item=with_item)
 
-        #If pipe passed, +5 to score (similar to game.py)
+        #If pipe passed, add to score and pipe reward (similar to game.py)
         for pipe in self.pipes:
             if not pipe['passed'] and pipe['x'] + self.pipe_width < self.bird_x:
                 self.score += 5
+                reward += REWARD_PASS_PIPE
                 pipe['passed'] = True
 
-        #If bird overlaps item, +10 to score (similar to game.py)
+        #If bird overlaps item, add to score and item reward (similar to game.py)
         for pipe in self.pipes:
             if pipe['item'] and pipe['item']['active']:
                 dx = self.bird_x - pipe['item']['x']
@@ -141,24 +158,23 @@ class FlappyBirdEnv:
                 distance = (dx ** 2 + dy ** 2) ** 0.5
                 if distance < self.bird_radius + self.item_radius:
                     self.score += 10
+                    reward += REWARD_COLLECT_ITEM
                     pipe['item']['active'] = False
 
-        #If collision with top or bottom of screen, game over with -100 penalty
+        #If collision with top or bottom of screen, game over with death penalty (similar to game.py)
         if self.bird_y - self.bird_radius < 0 or self.bird_y + self.bird_radius > self.HEIGHT:
             self.done = True
-            return self._get_state(), -100, True
+            return self._get_state(), PENALTY_DEATH, True
 
-        #If collision with pipes, game over with -100 penalty (similar to game.py)
+        #If collision with pipes, game over with death penalty (similar to game.py)
         for pipe in self.pipes:
-            if (
-                pipe['x'] < self.bird_x + self.bird_radius < pipe['x'] + self.pipe_width and
-                (self.bird_y - self.bird_radius < pipe['top'] or self.bird_y + self.bird_radius > pipe['bottom'])
-            ):
+            if (pipe['x'] < self.bird_x + self.bird_radius < pipe['x'] + self.pipe_width and
+                (self.bird_y - self.bird_radius < pipe['top'] or self.bird_y + self.bird_radius > pipe['bottom'])):
                 self.done = True
-                return self._get_state(), -100, True
+                return self._get_state(), PENALTY_DEATH, True
 
-        return self._get_state(), 0.1, self.done
-    
+        return self._get_state(), reward, self.done
+
 #--------------------------------------------------------------------------------------------------------------------------
 
     #Function to display current state (similar to game.py)

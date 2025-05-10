@@ -12,7 +12,7 @@ Files
 - agent.py: Reinforcement Learning DQN Flappy Bird Agent
 - train.py: Script that trains the agent using flappy_env.py, handles training loop, periodic evaluation, saving trained models
 - test_agent.py: Script to run trained models from train.py
-- 6660TermProjectData: We added our data to show you some examples. Each test file includes a .txt file where you can see the settings we used.
+- 6660TermProjectData: We added some of our data to show you examples. Each test file includes a .txt file where you can see the settings we used. Tests before Test7 did not include the .gif files.
 - 6660FinalSlides: These are the slides used in the video explanation of our project. Link to the video here --> https://youtu.be/lnRS4cJBlA8
 
 How to Play Yourself

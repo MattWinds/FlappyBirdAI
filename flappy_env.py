@@ -5,6 +5,7 @@
 
 #Libraries
 import pygame
+import pygame.surfarray
 import random
 import numpy as np
 
@@ -103,10 +104,10 @@ class FlappyBirdEnv:
     def step(self, action):
 
         #Rewards
-        REWARD_ALIVE = 0.5  #Reward for surviving every frame
+        REWARD_ALIVE = 0.3  #Reward for surviving every frame
         REWARD_PASS_PIPE = 80   #Reward for passing pipe
         REWARD_COLLECT_ITEM = 20    #Reward for collecting item
-        PENALTY_DEATH = -60 #Negative reward for dying
+        PENALTY_DEATH = -100 #Negative reward for dying
 
         #If the bird died in step before, next step() is unneccessary: return state and zero reward
         if self.done:
@@ -178,7 +179,7 @@ class FlappyBirdEnv:
 #--------------------------------------------------------------------------------------------------------------------------
 
     #Function to display current state (similar to game.py)
-    def render(self):
+    def render(self, return_rgb_array=False):
         if not self.render_mode:
             return
 
@@ -187,18 +188,28 @@ class FlappyBirdEnv:
         GREEN = (0, 255, 0)
         RED = (255, 0, 0)
 
-        self.clock.tick(self.FPS)
         self.screen.fill(WHITE)
 
+        #Draw the bird
         pygame.draw.circle(self.screen, BLACK, (self.bird_x, int(self.bird_y)), self.bird_radius)
 
+        #Draw pipes and items
         for pipe in self.pipes:
             pygame.draw.rect(self.screen, GREEN, (pipe['x'], 0, self.pipe_width, pipe['top']))
             pygame.draw.rect(self.screen, GREEN, (pipe['x'], pipe['bottom'], self.pipe_width, self.HEIGHT - pipe['bottom']))
             if pipe['item'] and pipe['item']['active']:
                 pygame.draw.circle(self.screen, RED, (int(pipe['item']['x']), int(pipe['item']['y'])), self.item_radius)
 
+        #Draw score
         score_surface = self.font.render(f"Score: {self.score}", True, BLACK)
         self.screen.blit(score_surface, (10, 10))
 
-        pygame.display.flip()
+        if return_rgb_array:
+            #Capture frame for video (GIF)
+            frame = pygame.surfarray.array3d(self.screen)  #(W, H, 3)
+            return np.transpose(frame, (1, 0, 2))  #Return (H, W, 3)
+        else:
+            #Render live to screen
+            pygame.display.flip()
+            self.clock.tick(self.FPS)
+

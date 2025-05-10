@@ -1,6 +1,6 @@
 #Matthew Windsor and Jay Parmar
 #CSCI 6660
-#test_agent.py: Load a trained DQN agent (model) and test it playing flappy bird without exploration
+#test_agent.py: Load a trained DQN agent and test it playing flappy bird without exploration
 
 #Libraries
 import torch
@@ -10,7 +10,7 @@ from agent import DQNAgent
 #Create the game environment
 env = FlappyBirdEnv(render_mode=True)
 
-# Set up agent
+#Set up agent
 state_size = len(env._get_state())  #Size of the state vector, should be 6
 action_size = 2 #Possible actions: 0 = no flap, 1 = flap
 
@@ -18,7 +18,7 @@ action_size = 2 #Possible actions: 0 = no flap, 1 = flap
 agent = DQNAgent(state_size, action_size)
 
 #Load best model (adjust filename as needed)
-agent.model.load_state_dict(torch.load("dqn_flappy_checkpoint_16000.pth", map_location=torch.device('cpu')))
+agent.model.load_state_dict(torch.load("test9_bestmodel.pth", map_location=torch.device('cpu')))
 agent.model.eval()  #Evaluation mode (no dropout, no randomness)
 
 #Set no exploration during test (pure exploitation, no random actions)

@@ -1,0 +1,8 @@
+50,000 episodes
+layers=256
+gamma=0.99, learning rate = 0.00035, batch_size=64, memory_size=100000, epsilon_start=0.9999, epsilon_end=0.01, epsilon_decay=0.9998, target_update_freq=1000
+        #Rewards
+        REWARD_ALIVE = 0.6  #Reward for surviving every frame
+        REWARD_PASS_PIPE = 100   #Reward for passing pipe
+        REWARD_COLLECT_ITEM = 20    #Reward for collecting item
+        PENALTY_DEATH = -70 #Negative reward for dying

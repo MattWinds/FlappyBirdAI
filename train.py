@@ -14,11 +14,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 import math
+import imageio
 
 #Hyperparameters
-EPISODES = 20000    #Total number of episodes to train
+EPISODES = 5000    #Total number of episodes to train
 MAX_STEPS = 10000   #Max steps allowed per episode (safety cutoff)
-CHECKPOINT = 500    #How many episodes will pass before a model is saved
+CHECKPOINT = 1000    #How many episodes will pass before a model is saved
 
 #Create game environment
 env = FlappyBirdEnv(render_mode=False)
@@ -44,11 +45,9 @@ for episode in range(EPISODES):
     total_reward = 0    #Track total reward this episode
 
     for step in range(MAX_STEPS):
-
         action = agent.act(state)   #Agent picks an action
         #Apply action to environment, get next state and reward
         next_state, reward, done = env.step(action) 
-
         agent.remember(state, action, reward, next_state, done) #Store the experience
         agent.replay()  #Learn from memory
 
@@ -66,8 +65,28 @@ for episode in range(EPISODES):
     #Save best model
     if total_reward > best_reward:
         best_reward = total_reward
-        torch.save(agent.model.state_dict(), f"dqn_flappy_best_{int(best_reward)}.pth")
-        print(f"New best model saved at episode {episode + 1} with reward {total_reward:.2f}")
+        model_path = f"dqn_flappy_best_{int(best_reward)}.pth"
+        torch.save(agent.model.state_dict(), model_path)
+        print(f"✅ New best model saved at episode {episode + 1} with reward {total_reward:.2f}")
+
+        #Record the best episode using current model
+        record_env = FlappyBirdEnv(render_mode=True)  #Create a fresh env to replay the episode visually
+        state = record_env.reset()
+        done = False
+        frames = []  #Store frames for GIF
+
+        while not done:
+            action = agent.act(state)
+            next_state, reward, done = record_env.step(action)
+
+            #Capture the screen frame as an RGB array for GIF generation
+            frame = record_env.render(return_rgb_array=True)
+            frames.append(frame)
+            state = next_state
+
+        #Save the recorded frames as a GIF named by score
+        imageio.mimsave(f"best_run_{int(best_reward)}.gif", frames, fps=30)
+        print(f"🎥 Best run recorded as best_run_{int(best_reward)}.gif")
 
     #Save checkpoint every x episodes
     if (episode + 1) % CHECKPOINT == 0:

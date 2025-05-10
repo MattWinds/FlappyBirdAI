@@ -12,13 +12,16 @@ Files
 - agent.py: Reinforcement Learning DQN Flappy Bird Agent
 - train.py: Script that trains the agent using flappy_env.py, handles training loop, periodic evaluation, saving trained models
 - test_agent.py: Script to run trained models from train.py
-- 6660TermProjectData: We added our data to show you some examples. Each test file includes a .txt file where you can see the settings we used. 
+- 6660TermProjectData: We added our data to show you some examples. Each test file includes a .txt file where you can see the settings we used.
+- 6660FinalSlides: These are the slides used in the video explanation of our project. Link to the video here --> https://youtu.be/lnRS4cJBlA8
 
 How to Play Yourself
 - There are two ways, one is to simply run game.py, and the other is to run test_lappy_env.py. The only difference between the two is that test_flappy_env.py will show you the rewards as you collect them.
 
 How to Change Rewards and Settings
 - To change the rewards, open flappy_env.py. Under the step() function, there are 4 rewards you can change. You can experiment with different combinations similar to the project.
+- To change the number of layers in the network, open agent.py. Under the DQN class, there is the __init__ function. There are 4 numbers that should all be 256. This is the number of layers.
+  You can change the number of layers by halving or doubling the numbers. Ex. 128, 256, 512, 1024 
 - To change the agent's settings like gamma, epsilon, or learning rate, open agent.py. Under the DQNAgent class, there is the __init__() function. The parameters include the different variables
   that you can change to your liking.
 
